@@ -1,0 +1,53 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+*.egg
+dist/
+build/
+
+# --- Virtual environment ---
+venv/
+.venv/
+ENV/
+env/
+
+# --- Environment variables ---
+.env
+.env.*
+*.env
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
+
+# --- IDE / Editors ---
+# PyCharm
+.idea/
+# VSCode
+.vscode/
+
+# --- Byte-compiled / cache ---
+*.cache
+.cache/
+pytest_cache/
+
+# --- MyPy / Pyright ---
+.mypy_cache/
+.pyright/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- Node / frontend ---
+node_modules/
+
+# --- Misc ---
+*.sqlite3
+*.db

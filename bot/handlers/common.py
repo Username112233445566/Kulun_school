@@ -26,20 +26,15 @@ async def cmd_start(message: Message, state: FSMContext):
             return
 
         if user['role'] == 'student':
+            from bot.keyboards.student import get_student_keyboard
             await message.answer("🎒 Добро пожаловать!", reply_markup=get_student_keyboard())
         elif user['role'] == 'teacher':
-            await message.answer("👨‍🏫 Добро пожаловать!", reply_markup=get_teacher_keyboard())
+            from bot.keyboards.teacher import get_teacher_keyboard
+            await message.answer("👨‍🏫 Добро пожаловать!", reply_markup=get_teacher_keyboard())  # Обновленная клавиатура
         elif user['role'] == 'admin':
+            from bot.keyboards.admin import get_admin_keyboard
             await message.answer("⚙️ Добро пожаловать!", reply_markup=get_admin_keyboard())
         return
-
-    # Начинаем регистрацию нового пользователя
-    await state.set_state(RegistrationStates.choosing_role)
-    await message.answer(
-        f"{WELCOME_MESSAGE}\n\n{CHOOSE_ROLE_MESSAGE}",
-        reply_markup=get_role_keyboard()
-    )
-
 
 # Обработка выбора роли
 @router.message(RegistrationStates.choosing_role, F.text.in_(["🎒 Ученик", "👨‍🏫 Учитель"]))

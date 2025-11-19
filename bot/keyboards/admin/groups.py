@@ -1,35 +1,9 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from typing import List, Dict
-
-
-def get_admin_keyboard():
-    """Основная клавиатура администратора"""
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="👤 Подтверждение"), KeyboardButton(text="🏫 Группы")],
-            [KeyboardButton(text="📊 Отчеты")],
-            [KeyboardButton(text="📤 Экспорт в Sheets"), KeyboardButton(text="📥 Импорт из Sheets")]
-        ],
-        resize_keyboard=True
-    )
-
-
-
-def get_approval_keyboard(user_id: int):
-    """Клавиатура для подтверждения пользователя"""
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"approve_{user_id}"),
-                InlineKeyboardButton(text="❌ Отклонить", callback_data=f"reject_{user_id}")
-            ]
-        ]
-    )
-
+from services.user_manager import UserManager
 
 def get_groups_selection_keyboard(action: str, user_id: int = None):
     """Клавиатура для выбора группы"""
-    from services.user_manager import UserManager
     user_manager = UserManager()
     groups = user_manager.get_all_groups()
 
@@ -65,7 +39,6 @@ def get_groups_selection_keyboard(action: str, user_id: int = None):
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
-
 def get_group_management_keyboard(group_id: int):
     """Клавиатура для управления группой"""
     return InlineKeyboardMarkup(
@@ -88,7 +61,6 @@ def get_group_management_keyboard(group_id: int):
         ]
     )
 
-
 def get_group_members_management_keyboard(group_id: int):
     """Клавиатура для управления участниками группы"""
     return InlineKeyboardMarkup(
@@ -102,7 +74,6 @@ def get_group_members_management_keyboard(group_id: int):
             ]
         ]
     )
-
 
 def get_students_management_keyboard(group_id: int, students: List[Dict]):
     """Клавиатура для управления учениками в группе"""
@@ -123,12 +94,10 @@ def get_students_management_keyboard(group_id: int, students: List[Dict]):
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
-
 def get_teachers_selection_keyboard(group_id: int):
     """Клавиатура для выбора учителя"""
-    from services.user_manager import UserManager
     user_manager = UserManager()
-    teachers = user_manager.get_available_teachers()  # Теперь этот метод существует
+    teachers = user_manager.get_available_teachers()
 
     keyboard = []
     for teacher in teachers:
@@ -152,10 +121,8 @@ def get_teachers_selection_keyboard(group_id: int):
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
-
 def get_students_selection_keyboard(group_id: int):
-    """Клавиатура для выбора учеников (ИСПРАВЛЕННАЯ ВЕРСИЯ)"""
-    from services.user_manager import UserManager
+    """Клавиатура для выбора учеников"""
     user_manager = UserManager()
     students = user_manager.get_students_without_groups()
 
@@ -164,7 +131,7 @@ def get_students_selection_keyboard(group_id: int):
         keyboard.append([
             InlineKeyboardButton(
                 text=f"🎒 {student['full_name']}",
-                callback_data=f"select_student_{group_id}_{student['id']}"  # Используем внутренний ID
+                callback_data=f"select_student_{group_id}_{student['id']}"
             )
         ])
 
@@ -179,7 +146,6 @@ def get_students_selection_keyboard(group_id: int):
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
-
 def get_confirmation_keyboard(action: str, item_id: int):
     """Клавиатура для подтверждения действий"""
     return InlineKeyboardMarkup(
@@ -191,17 +157,30 @@ def get_confirmation_keyboard(action: str, item_id: int):
         ]
     )
 
-
-def get_reports_keyboard():
-    """Клавиатура для раздела отчетов"""
+def get_subjects_management_keyboard():
+    """Клавиатура для управления предметами"""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="📤 Экспорт в Sheets", callback_data="cmd_export"),
-                InlineKeyboardButton(text="📥 Импорт из Sheets", callback_data="cmd_import")
+                InlineKeyboardButton(text="➕ Добавить предмет", callback_data="add_subject"),
+                InlineKeyboardButton(text="📋 Просмотреть предметы", callback_data="view_subjects")
             ],
             [
-                InlineKeyboardButton(text="📊 Общая статистика", callback_data="full_stats")
+                InlineKeyboardButton(text="🔙 Назад в меню", callback_data="back_to_admin_menu")
+            ]
+        ]
+    )
+
+def get_subjects_management_keyboard():
+    """Клавиатура для управления предметами"""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="➕ Добавить предмет", callback_data="add_subject"),
+                InlineKeyboardButton(text="📋 Просмотреть предметы", callback_data="view_subjects")
+            ],
+            [
+                InlineKeyboardButton(text="🔙 Назад в меню", callback_data="back_to_admin_menu")
             ]
         ]
     )

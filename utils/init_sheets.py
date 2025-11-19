@@ -1,6 +1,5 @@
 from services.google_sheets import GoogleSheetsManager
 
-
 def initialize_google_sheets():
     """Инициализирует Google Sheets с нужной структурой"""
     sheets_manager = GoogleSheetsManager()
@@ -12,7 +11,6 @@ def initialize_google_sheets():
     sheets_manager.get_worksheet("Attendance")
 
     print("✅ Google Sheets инициализированы")
-
 
 if __name__ == "__main__":
     initialize_google_sheets()

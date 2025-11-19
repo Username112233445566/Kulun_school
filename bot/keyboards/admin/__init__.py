@@ -1,24 +1,17 @@
-from .common import get_role_keyboard, get_phone_keyboard
-from .student import get_student_keyboard
-from .teacher import get_teacher_keyboard
-from .admin import (
-    get_admin_keyboard,
-    get_reports_keyboard,
-    get_approval_keyboard,
+from .main import get_admin_keyboard, get_reports_keyboard
+from .users import get_approval_keyboard
+from .groups import (
     get_groups_selection_keyboard,
     get_group_management_keyboard,
     get_group_members_management_keyboard,
     get_students_management_keyboard,
     get_teachers_selection_keyboard,
     get_students_selection_keyboard,
-    get_confirmation_keyboard
+    get_confirmation_keyboard,
+    get_subjects_management_keyboard
 )
 
 __all__ = [
-    'get_role_keyboard',
-    'get_phone_keyboard',
-    'get_student_keyboard',
-    'get_teacher_keyboard',
     'get_admin_keyboard',
     'get_reports_keyboard',
     'get_approval_keyboard',
@@ -28,5 +21,6 @@ __all__ = [
     'get_students_management_keyboard',
     'get_teachers_selection_keyboard',
     'get_students_selection_keyboard',
-    'get_confirmation_keyboard'
+    'get_confirmation_keyboard',
+    'get_subjects_management_keyboard'
 ]

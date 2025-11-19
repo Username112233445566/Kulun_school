@@ -1,4 +1,3 @@
-# services/google_sheets.py
 import gspread
 from google.oauth2.service_account import Credentials
 from config.config import SPREADSHEET_ID, CREDENTIALS_FILE
@@ -97,3 +96,26 @@ class GoogleSheetsManager:
                     continue
                 logger.error(f"❌ Ошибка обновления ячейки после {max_retries} попыток: {e}")
                 return False
+
+    def clear_worksheet(self, worksheet):
+        """Очистить лист"""
+        if not worksheet:
+            return False
+
+        try:
+            worksheet.clear()
+            return True
+        except Exception as e:
+            logger.error(f"❌ Ошибка очистки листа: {e}")
+            return False
+
+    def get_all_records_safe(self, worksheet):
+        """Безопасное получение всех записей"""
+        if not worksheet:
+            return []
+
+        try:
+            return worksheet.get_all_records()
+        except Exception as e:
+            logger.error(f"❌ Ошибка получения записей: {e}")
+            return []

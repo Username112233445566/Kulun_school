@@ -8,6 +8,7 @@ from .admin_sync import router as admin_sync_router
 from .admin_creation import router as admin_creation_router
 from .admin_subjects import router as admin_subjects_router
 from .admin_schedule import router as admin_schedule_router
+from .unknown import router as unknown_router
 
 __all__ = [
     'common_router',
@@ -19,5 +20,6 @@ __all__ = [
     'admin_sync_router',
     'admin_creation_router',
     'admin_subjects_router',
-    'admin_schedule_router'
+    'admin_schedule_router',
+    'unknown_router'
 ]

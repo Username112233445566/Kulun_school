@@ -10,36 +10,33 @@ from bot.keyboards.admin import get_subjects_management_keyboard, get_confirmati
 
 router = Router()
 
-
 @router.message(Command("subjects"))
 async def manage_subjects(message: Message):
-    """Управление предметами"""
     user_manager = UserManager()
     user = user_manager.get_user(message.from_user.id)
 
     if not user or user['role'] != 'admin' or user['status'] != 'active':
-        return await message.answer("❌ Доступ запрещен")
+        return await message.answer("Доступ запрещен")
 
     subjects_manager = SubjectsManager()
     subjects = subjects_manager.get_all_subjects()
 
     if not subjects:
-        # Показываем сообщение с кнопкой для добавления первого предмета
         await message.answer(
-            "📚 Нет добавленных предметов\n\n"
+            "Нет добавленных предметов\n\n"
             "Хотите добавить первый предмет?",
             reply_markup=InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [InlineKeyboardButton(text="➕ Добавить предмет", callback_data="add_subject")],
-                    [InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_admin_menu")]
+                    [InlineKeyboardButton(text="Добавить предмет", callback_data="add_subject")],
+                    [InlineKeyboardButton(text="Назад", callback_data="back_to_admin_menu")]
                 ]
             )
         )
         return
 
-    subjects_text = "📚 Список предметов:\n\n"
+    subjects_text = "Список предметов:\n\n"
     for subject in subjects:
-        subjects_text += f"🆔 {subject['id']}. {subject['name']}"
+        subjects_text += f"{subject['id']}. {subject['name']}"
         if subject.get('description'):
             subjects_text += f" - {subject['description']}"
         subjects_text += "\n"
@@ -49,33 +46,29 @@ async def manage_subjects(message: Message):
         reply_markup=get_subjects_management_keyboard()
     )
 
-@router.message(F.text == "📚 Предметы")
+@router.message(F.text == "Предметы")
 async def subjects_button(message: Message):
-    """Обработка кнопки предметов"""
     await manage_subjects(message)
 
 @router.callback_query(F.data == "add_subject")
 async def add_subject_callback(callback: CallbackQuery, state: FSMContext):
-    """Добавление нового предмета"""
     user_manager = UserManager()
     user = user_manager.get_user(callback.from_user.id)
 
     if not user or user['role'] != 'admin' or user['status'] != 'active':
-        await callback.answer("❌ Доступ запрещен")
+        await callback.answer("Доступ запрещен")
         return
 
     await state.set_state(AdminStates.adding_subject_name)
     await callback.message.answer("Введите название нового предмета:")
     await callback.answer()
 
-
 @router.message(AdminStates.adding_subject_name)
 async def process_subject_name(message: Message, state: FSMContext):
-    """Обработка названия предмета"""
     subject_name = message.text.strip()
 
     if not subject_name:
-        await message.answer("❌ Название предмета не может быть пустым. Введите название:")
+        await message.answer("Название предмета не может быть пустым. Введите название:")
         return
 
     await state.update_data(subject_name=subject_name)
@@ -83,10 +76,8 @@ async def process_subject_name(message: Message, state: FSMContext):
 
     await message.answer("Введите описание предмета (или отправьте '-' чтобы пропустить):")
 
-
 @router.message(AdminStates.adding_subject_description)
 async def process_subject_description(message: Message, state: FSMContext):
-    """Обработка описания предмета"""
     description = message.text.strip()
     if description == "-":
         description = None
@@ -97,34 +88,32 @@ async def process_subject_description(message: Message, state: FSMContext):
     subjects_manager = SubjectsManager()
 
     if subjects_manager.add_subject(subject_name, description):
-        await message.answer(f"✅ Предмет '{subject_name}' успешно добавлен!")
+        await message.answer(f"Предмет '{subject_name}' успешно добавлен!")
     else:
-        await message.answer("❌ Ошибка при добавлении предмета. Возможно, предмет с таким названием уже существует.")
+        await message.answer("Ошибка при добавлении предмета. Возможно, предмет с таким названием уже существует.")
 
     await state.clear()
 
-
 @router.callback_query(F.data == "view_subjects")
 async def view_subjects_callback(callback: CallbackQuery):
-    """Просмотр всех предметов"""
     user_manager = UserManager()
     user = user_manager.get_user(callback.from_user.id)
 
     if not user or user['role'] != 'admin' or user['status'] != 'active':
-        await callback.answer("❌ Доступ запрещен")
+        await callback.answer("Доступ запрещен")
         return
 
     subjects_manager = SubjectsManager()
     subjects = subjects_manager.get_all_subjects()
 
     if not subjects:
-        await callback.message.edit_text("📚 Нет добавленных предметов")
+        await callback.message.edit_text("Нет добавленных предметов")
         await callback.answer()
         return
 
-    subjects_text = "📚 Список предметов:\n\n"
+    subjects_text = "Список предметов:\n\n"
     for subject in subjects:
-        subjects_text += f"🆔 {subject['id']}. {subject['name']}"
+        subjects_text += f"{subject['id']}. {subject['name']}"
         if subject.get('description'):
             subjects_text += f" - {subject['description']}"
         subjects_text += "\n"
@@ -132,24 +121,22 @@ async def view_subjects_callback(callback: CallbackQuery):
     await callback.message.edit_text(subjects_text)
     await callback.answer()
 
-
 @router.callback_query(F.data.startswith("delete_subject_"))
 async def delete_subject_confirmation(callback: CallbackQuery):
-    """Подтверждение удаления предмета"""
     subject_id = int(callback.data.split("_")[2])
 
     user_manager = UserManager()
     user = user_manager.get_user(callback.from_user.id)
 
     if not user or user['role'] != 'admin' or user['status'] != 'active':
-        await callback.answer("❌ Доступ запрещен")
+        await callback.answer("Доступ запрещен")
         return
 
     subjects_manager = SubjectsManager()
     subject = subjects_manager.get_subject(subject_id)
 
     if not subject:
-        await callback.answer("❌ Предмет не найден")
+        await callback.answer("Предмет не найден")
         return
 
     await callback.message.edit_text(
@@ -158,84 +145,49 @@ async def delete_subject_confirmation(callback: CallbackQuery):
     )
     await callback.answer()
 
-
 @router.callback_query(F.data.startswith("confirm_delete_subject_"))
 async def confirm_delete_subject(callback: CallbackQuery):
-    """Подтвержденное удаление предмета"""
     subject_id = int(callback.data.split("_")[3])
 
     user_manager = UserManager()
     user = user_manager.get_user(callback.from_user.id)
 
     if not user or user['role'] != 'admin' or user['status'] != 'active':
-        await callback.answer("❌ Доступ запрещен")
+        await callback.answer("Доступ запрещен")
         return
 
     subjects_manager = SubjectsManager()
     subject = subjects_manager.get_subject(subject_id)
 
     if not subject:
-        await callback.answer("❌ Предмет не найден")
+        await callback.answer("Предмет не найден")
         return
 
     if subjects_manager.delete_subject(subject_id):
-        await callback.message.edit_text(f"✅ Предмет '{subject['name']}' успешно удален!")
+        await callback.message.edit_text(f"Предмет '{subject['name']}' успешно удален!")
     else:
-        await callback.message.edit_text("❌ Ошибка при удалении предмета.")
+        await callback.message.edit_text("Ошибка при удалении предмета.")
 
     await callback.answer()
-
 
 @router.callback_query(F.data.startswith("cancel_delete_subject_"))
 async def cancel_delete_subject(callback: CallbackQuery):
-    """Отмена удаления предмета"""
-    await callback.message.edit_text("❌ Удаление предмета отменено.")
+    await callback.message.edit_text("Удаление предмета отменено.")
     await callback.answer()
-
 
 @router.callback_query(F.data == "back_to_admin_menu")
 async def back_to_admin_menu(callback: CallbackQuery):
-    """Возврат в главное меню админа"""
     from bot.keyboards.admin import get_admin_keyboard
 
     user_manager = UserManager()
     user = user_manager.get_user(callback.from_user.id)
 
     if not user or user['role'] != 'admin' or user['status'] != 'active':
-        await callback.answer("❌ Доступ запрещен")
+        await callback.answer("Доступ запрещен")
         return
 
     await callback.message.edit_text(
-        "⚙️ Панель администратора",
+        "Панель администратора",
         reply_markup=get_admin_keyboard()
     )
     await callback.answer()
-
-
-@router.message(Command("addsubject"))
-async def quick_add_subject(message: Message, state: FSMContext):
-    """Быстрое добавление предмета через команду /addsubject"""
-    user_manager = UserManager()
-    user = user_manager.get_user(message.from_user.id)
-
-    if not user or user['role'] != 'admin' or user['status'] != 'active':
-        return await message.answer("❌ Доступ запрещен")
-
-    # Разделяем команду: /addsubject Математика - Основной предмет
-    parts = message.text.split(' ', 2)
-    if len(parts) < 2:
-        await state.set_state(AdminStates.adding_subject_name)
-        await message.answer("Введите название предмета:")
-        return
-
-    subject_name = parts[1].strip()
-    description = parts[2] if len(parts) > 2 else None
-
-    subjects_manager = SubjectsManager()
-
-    if subjects_manager.add_subject(subject_name, description):
-        await message.answer(f"✅ Предмет '{subject_name}' успешно добавлен!")
-    else:
-        await message.answer("❌ Ошибка при добавлении предмета. Возможно, предмет с таким названием уже существует.")
-
-    await state.clear()

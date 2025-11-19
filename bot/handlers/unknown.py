@@ -1,4 +1,3 @@
-# bot/handlers/unknown.py
 from aiogram import Router
 from aiogram.types import Message
 from bot.keyboards.admin import get_admin_keyboard
@@ -8,12 +7,11 @@ router = Router()
 
 @router.message()
 async def unknown_message(message: Message):
-    """Обработка неизвестных сообщений"""
     user_manager = UserManager()
     user = user_manager.get_user(message.from_user.id)
 
     if not user:
-        await message.answer("❌ Вы не зарегистрированы в системе. Используйте /start")
+        await message.answer("Вы не зарегистрированы в системе. Используйте /start")
         return
 
     if user['role'] == 'admin' and user['status'] == 'active':
@@ -34,4 +32,4 @@ async def unknown_message(message: Message):
             reply_markup=get_student_keyboard()
         )
     else:
-        await message.answer("❌ Доступ запрещен или вы не авторизованы.")
+        await message.answer("Доступ запрещен или вы не авторизованы.")

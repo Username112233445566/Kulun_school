@@ -9,53 +9,42 @@ class SubjectsManager:
         self.db = Database()
 
     def add_subject(self, name: str, description: str = None) -> bool:
-        """Добавить новый предмет"""
         try:
-            self.db.execute(
-                "INSERT INTO subjects (name, description) VALUES (?, ?)",
-                (name, description)
-            )
-            logger.info(f"✅ Предмет '{name}' добавлен")
+            self.db.execute("INSERT INTO subjects (name, description) VALUES (?, ?)", (name, description))
+            logger.info(f"Subject '{name}' added")
             return True
         except Exception as e:
-            logger.error(f"❌ Ошибка при добавлении предмета: {e}")
+            logger.error(f"Error adding subject: {e}")
             return False
 
     def get_all_subjects(self) -> List[Dict]:
-        """Получить все предметы"""
         try:
             return self.db.fetch_all("SELECT * FROM subjects ORDER BY name")
         except Exception as e:
-            logger.error(f"❌ Ошибка при получении предметов: {e}")
+            logger.error(f"Error getting subjects: {e}")
             return []
 
     def get_subject(self, subject_id: int) -> Optional[Dict]:
-        """Получить предмет по ID"""
         try:
             return self.db.fetch_one("SELECT * FROM subjects WHERE id = ?", (subject_id,))
         except Exception as e:
-            logger.error(f"❌ Ошибка при получении предмета: {e}")
+            logger.error(f"Error getting subject: {e}")
             return None
 
     def delete_subject(self, subject_id: int) -> bool:
-        """Удалить предмет"""
         try:
             self.db.execute("DELETE FROM subjects WHERE id = ?", (subject_id,))
-            logger.info(f"✅ Предмет {subject_id} удален")
+            logger.info(f"Subject {subject_id} deleted")
             return True
         except Exception as e:
-            logger.error(f"❌ Ошибка при удалении предмета: {e}")
+            logger.error(f"Error deleting subject: {e}")
             return False
 
     def update_subject(self, subject_id: int, name: str, description: str = None) -> bool:
-        """Обновить предмет"""
         try:
-            self.db.execute(
-                "UPDATE subjects SET name = ?, description = ? WHERE id = ?",
-                (name, description, subject_id)
-            )
-            logger.info(f"✅ Предмет {subject_id} обновлен")
+            self.db.execute("UPDATE subjects SET name = ?, description = ? WHERE id = ?", (name, description, subject_id))
+            logger.info(f"Subject {subject_id} updated")
             return True
         except Exception as e:
-            logger.error(f"❌ Ошибка при обновлении предмета: {e}")
+            logger.error(f"Error updating subject: {e}")
             return False

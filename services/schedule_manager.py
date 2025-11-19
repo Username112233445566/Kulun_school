@@ -10,12 +10,9 @@ class ScheduleManager:
 
     def add_schedule_item(self, group_id: int, day_of_week: str, start_time: str,
                           end_time: str, subject: str, teacher_id: int = None) -> bool:
-        """Добавить элемент расписания"""
         try:
-            # ДОБАВЬТЕ ПРОВЕРКУ ДАННЫХ
             if not all([group_id, day_of_week, start_time, end_time, subject]):
-                logger.error(f"❌ Не все данные переданы для создания расписания: "
-                             f"group_id={group_id}, day={day_of_week}, time={start_time}-{end_time}, subject={subject}")
+                logger.error(f"Missing data for schedule: group_id={group_id}, day={day_of_week}")
                 return False
 
             self.db.execute(
@@ -23,14 +20,13 @@ class ScheduleManager:
                    VALUES (?, ?, ?, ?, ?, ?)""",
                 (group_id, day_of_week, start_time, end_time, subject, teacher_id)
             )
-            logger.info(f"✅ Элемент расписания добавлен для группы {group_id}")
+            logger.info(f"Schedule item added for group {group_id}")
             return True
         except Exception as e:
-            logger.error(f"❌ Ошибка при добавлении расписания: {e}")
+            logger.error(f"Error adding schedule: {e}")
             return False
 
     def get_group_schedule(self, group_id: int) -> List[Dict]:
-        """Получить расписание группы"""
         try:
             return self.db.fetch_all(
                 """SELECT s.*, u.full_name as teacher_name
@@ -51,24 +47,19 @@ class ScheduleManager:
                 (group_id,)
             )
         except Exception as e:
-            logger.error(f"❌ Ошибка при получении расписания: {e}")
+            logger.error(f"Error getting schedule: {e}")
             return []
 
     def delete_schedule_item(self, schedule_id: int) -> bool:
-        """Удалить элемент расписания"""
         try:
-            self.db.execute(
-                "DELETE FROM schedule WHERE id = ?",
-                (schedule_id,)
-            )
-            logger.info(f"✅ Элемент расписания {schedule_id} удален")
+            self.db.execute("DELETE FROM schedule WHERE id = ?", (schedule_id,))
+            logger.info(f"Schedule item {schedule_id} deleted")
             return True
         except Exception as e:
-            logger.error(f"❌ Ошибка при удалении расписания: {e}")
+            logger.error(f"Error deleting schedule: {e}")
             return False
 
     def get_schedule_by_day(self, group_id: int, day_of_week: str) -> List[Dict]:
-        """Получить расписание группы на конкретный день"""
         try:
             return self.db.fetch_all(
                 """SELECT s.*, u.full_name as teacher_name
@@ -79,5 +70,5 @@ class ScheduleManager:
                 (group_id, day_of_week)
             )
         except Exception as e:
-            logger.error(f"❌ Ошибка при получении расписания на день: {e}")
+            logger.error(f"Error getting daily schedule: {e}")
             return []

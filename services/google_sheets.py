@@ -6,7 +6,6 @@ import time
 
 logger = logging.getLogger(__name__)
 
-
 class GoogleSheetsManager:
     def __init__(self):
         self.scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -14,25 +13,21 @@ class GoogleSheetsManager:
             self.creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=self.scope)
             self.client = gspread.authorize(self.creds)
             self.sheet = self.client.open_by_key(SPREADSHEET_ID)
-            logger.info("✅ Google Sheets подключен")
+            logger.info("Google Sheets connected")
         except Exception as e:
-            logger.error(f"❌ Ошибка подключения к Google Sheets: {e}")
+            logger.error(f"Error connecting to Google Sheets: {e}")
             self.client = None
 
     def get_worksheet(self, sheet_name):
-        """Получить лист с обработкой ошибок"""
         if not self.client:
             return None
 
         try:
-            # Пробуем получить существующий лист
             return self.sheet.worksheet(sheet_name)
         except gspread.WorksheetNotFound:
             try:
-                # Создаем новый лист
                 worksheet = self.sheet.add_worksheet(title=sheet_name, rows=1000, cols=20)
 
-                # Добавляем заголовки для основных листов
                 if sheet_name == "Users":
                     worksheet.append_row([
                         "ID", "Telegram ID", "Full Name", "Phone", "Role",
@@ -54,17 +49,16 @@ class GoogleSheetsManager:
                         "Student Name", "Status", "Marked By", "Marked At"
                     ])
 
-                logger.info(f"✅ Создан новый лист: {sheet_name}")
+                logger.info(f"New sheet created: {sheet_name}")
                 return worksheet
             except Exception as e:
-                logger.error(f"❌ Ошибка создания листа {sheet_name}: {e}")
+                logger.error(f"Error creating sheet {sheet_name}: {e}")
                 return None
         except Exception as e:
-            logger.error(f"❌ Ошибка доступа к листу {sheet_name}: {e}")
+            logger.error(f"Error accessing sheet {sheet_name}: {e}")
             return None
 
     def safe_append_row(self, worksheet, row_data):
-        """Безопасное добавление строки с повторными попытками"""
         if not worksheet:
             return False
 
@@ -75,13 +69,12 @@ class GoogleSheetsManager:
                 return True
             except Exception as e:
                 if attempt < max_retries - 1:
-                    time.sleep(1)  # Ждем секунду перед повторной попыткой
+                    time.sleep(1)
                     continue
-                logger.error(f"❌ Ошибка добавления строки после {max_retries} попыток: {e}")
+                logger.error(f"Error adding row after {max_retries} attempts: {e}")
                 return False
 
     def safe_update_cell(self, worksheet, row, col, value):
-        """Безопасное обновление ячейки с повторными попытками"""
         if not worksheet:
             return False
 
@@ -94,11 +87,10 @@ class GoogleSheetsManager:
                 if attempt < max_retries - 1:
                     time.sleep(1)
                     continue
-                logger.error(f"❌ Ошибка обновления ячейки после {max_retries} попыток: {e}")
+                logger.error(f"Error updating cell after {max_retries} attempts: {e}")
                 return False
 
     def clear_worksheet(self, worksheet):
-        """Очистить лист"""
         if not worksheet:
             return False
 
@@ -106,16 +98,15 @@ class GoogleSheetsManager:
             worksheet.clear()
             return True
         except Exception as e:
-            logger.error(f"❌ Ошибка очистки листа: {e}")
+            logger.error(f"Error clearing sheet: {e}")
             return False
 
     def get_all_records_safe(self, worksheet):
-        """Безопасное получение всех записей"""
         if not worksheet:
             return []
 
         try:
             return worksheet.get_all_records()
         except Exception as e:
-            logger.error(f"❌ Ошибка получения записей: {e}")
+            logger.error(f"Error getting records: {e}")
             return []

@@ -6,23 +6,20 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-
 class SyncManager:
     def __init__(self):
         self.db = Database()
         self.sheets = GoogleSheetsManager()
 
     def sync_users_to_sheets(self):
-        """Синхронизирует пользователей из SQLite в Google Sheets"""
         try:
             users = self.db.fetch_all("SELECT * FROM users")
             worksheet = self.sheets.get_worksheet("Users")
 
             if not worksheet:
-                logger.error("❌ Не удалось получить лист Users")
+                logger.error("Cannot get Users worksheet")
                 return False
 
-            # Очищаем и обновляем заголовки
             worksheet.clear()
             worksheet.append_row([
                 "ID", "Telegram ID", "Full Name", "Phone", "Role",
@@ -32,10 +29,7 @@ class SyncManager:
             for user in users:
                 group_name = ""
                 if user.get('group_id'):
-                    group = self.db.fetch_one(
-                        "SELECT name FROM groups WHERE id = ?",
-                        (user['group_id'],)
-                    )
+                    group = self.db.fetch_one("SELECT name FROM groups WHERE id = ?", (user['group_id'],))
                     group_name = group['name'] if group else ""
 
                 self.sheets.safe_append_row(worksheet, [
@@ -50,24 +44,23 @@ class SyncManager:
                     user['created_at']
                 ])
 
-            logger.info("✅ Пользователи синхронизированы в Google Sheets")
+            logger.info("Users synced to Google Sheets")
             return True
         except Exception as e:
-            logger.error(f"❌ Ошибка синхронизации пользователей: {e}")
+            logger.error(f"Error syncing users: {e}")
             return False
 
     def sync_groups_to_sheets(self):
-        """Синхронизирует группы из SQLite в Google Sheets"""
         try:
             groups = self.db.fetch_all("""
-                                       SELECT g.*, u.full_name as teacher_name
-                                       FROM groups g
-                                                LEFT JOIN users u ON g.teacher_id = u.id
-                                       """)
+                SELECT g.*, u.full_name as teacher_name
+                FROM groups g
+                LEFT JOIN users u ON g.teacher_id = u.id
+            """)
             worksheet = self.sheets.get_worksheet("Groups")
 
             if not worksheet:
-                logger.error("❌ Не удалось получить лист Groups")
+                logger.error("Cannot get Groups worksheet")
                 return False
 
             worksheet.clear()
@@ -77,7 +70,6 @@ class SyncManager:
             ])
 
             for group in groups:
-                # Считаем количество учеников в группе
                 students_count = self.db.fetch_one(
                     "SELECT COUNT(*) as count FROM users WHERE group_id = ? AND role = 'student' AND status = 'active'",
                     (group['id'],)
@@ -93,42 +85,36 @@ class SyncManager:
                     group['created_at']
                 ])
 
-            logger.info("✅ Группы синхронизированы в Google Sheets")
+            logger.info("Groups synced to Google Sheets")
             return True
         except Exception as e:
-            logger.error(f"❌ Ошибка синхронизации групп: {e}")
+            logger.error(f"Error syncing groups: {e}")
             return False
 
     def sync_from_sheets(self):
-        """Синхронизирует изменения из Google Sheets в SQLite"""
         try:
-            # Синхронизируем группы
             groups_worksheet = self.sheets.get_worksheet("Groups")
             if groups_worksheet:
                 groups_data = groups_worksheet.get_all_records()
 
                 for group_row in groups_data:
                     if group_row.get('ID') and group_row.get('Name'):
-                        # Проверяем существующую группу
                         existing_group = self.db.fetch_one(
                             "SELECT * FROM groups WHERE id = ? OR name = ?",
                             (group_row['ID'], group_row['Name'])
                         )
 
                         if existing_group:
-                            # Обновляем существующую группу
                             self.db.execute(
                                 "UPDATE groups SET name = ?, teacher_id = ? WHERE id = ?",
                                 (group_row['Name'], group_row.get('Teacher ID'), existing_group['id'])
                             )
                         else:
-                            # Создаем новую группу
                             self.db.execute(
                                 "INSERT INTO groups (name, teacher_id) VALUES (?, ?)",
                                 (group_row['Name'], group_row.get('Teacher ID'))
                             )
 
-            # Синхронизируем пользователей
             users_worksheet = self.sheets.get_worksheet("Users")
             if users_worksheet:
                 users_data = users_worksheet.get_all_records()
@@ -144,21 +130,13 @@ class SyncManager:
                         if user_row.get('Group ID'):
                             group_id = user_row['Group ID']
                         elif user_row.get('Group Name'):
-                            group = self.db.fetch_one(
-                                "SELECT id FROM groups WHERE name = ?",
-                                (user_row['Group Name'],)
-                            )
+                            group = self.db.fetch_one("SELECT id FROM groups WHERE name = ?", (user_row['Group Name'],))
                             group_id = group['id'] if group else None
 
                         if existing_user:
-                            # Обновляем существующего пользователя
                             self.db.execute(
                                 """UPDATE users
-                                   SET full_name = ?,
-                                       phone     = ?,
-                                       role      = ?,
-                                       status    = ?,
-                                       group_id  = ?
+                                   SET full_name = ?, phone = ?, role = ?, status = ?, group_id = ?
                                    WHERE telegram_id = ?""",
                                 (
                                     user_row['Full Name'], user_row['Phone'], user_row['Role'],
@@ -166,10 +144,8 @@ class SyncManager:
                                 )
                             )
                         else:
-                            # Создаем нового пользователя
                             self.db.execute(
-                                """INSERT INTO users
-                                       (telegram_id, full_name, phone, role, status, group_id, created_at)
+                                """INSERT INTO users (telegram_id, full_name, phone, role, status, group_id, created_at)
                                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
                                 (
                                     user_row['Telegram ID'], user_row['Full Name'], user_row['Phone'],
@@ -178,23 +154,21 @@ class SyncManager:
                                 )
                             )
 
-            logger.info("✅ Данные синхронизированы из Google Sheets")
+            logger.info("Data synced from Google Sheets")
             return True
         except Exception as e:
-            logger.error(f"❌ Ошибка синхронизации из Google Sheets: {e}")
+            logger.error(f"Error syncing from Google Sheets: {e}")
             return False
 
     def full_sync(self):
-        """Полная синхронизация в обе стороны"""
-        logger.info("🔄 Начинаем полную синхронизацию...")
+        logger.info("Starting full sync...")
 
-        # Сначала экспортируем текущие данные
         users_success = self.sync_users_to_sheets()
         groups_success = self.sync_groups_to_sheets()
 
         if users_success and groups_success:
-            logger.info("✅ Полная синхронизация завершена")
+            logger.info("Full sync completed")
             return True
         else:
-            logger.error("❌ Полная синхронизация завершена с ошибками")
+            logger.error("Full sync completed with errors")
             return False

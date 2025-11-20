@@ -1,0 +1,10 @@
+services:
+  kulun-school-bot:
+    build: .
+    container_name: kulun-school-bot
+    restart: unless-stopped
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    working_dir: /app
